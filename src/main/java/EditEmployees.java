@@ -1,20 +1,54 @@
 import java.sql.*;
 import java.util.HashMap;
+import java.util.function.Function;
 
 public class EditEmployees {
     // We need a way to associate the type of the column we're modifying
     // so we know how to parse the new value passed to updateField.
     // We also need a way to determine whether the column name is valid.
-    // Solution: Hashmap of valid column names and their types; if the
-    // column name is a key in the map, it's valid, and its type is the
-    // associated value, which we can switch against to resolve.
-    private static final HashMap<String, String> columnTypes = new HashMap<>();
-    // TODO: Fill out the rest of the editable columns
-    static {
-        columnTypes.put("FName", "string");
-        columnTypes.put("LName", "string");
-        columnTypes.put("email", "string");
-        columnTypes.put("salary", "int");
+    // Solution: Enum of valid column names and their types; if the
+    // column name is a variant in the enum, it's valid, and its type is the
+    // associated value. We also give each variant a parser lambda to easily
+    // get its correct value.
+    public enum EmployeeColumn {
+        // TODO: The rest of the editable columns, plus some mechanism for different tables
+        FNAME("FName", "string", val -> val),
+        LNAME("LName", "string", val -> val),
+        EMAIL("email", "string", val -> val),
+        SALARY("salary", "int", val -> Integer.parseInt(val));
+
+        private final String columnName;
+        private final String type;
+        private final Function<String, Object> parser;
+
+        EmployeeColumn(String columnName, String type, Function<String, Object> parser) {
+            this.columnName = columnName;
+            this.type = type;
+            this.parser = parser;
+        }
+
+        public String getColumnName() {
+            return columnName;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public static EmployeeColumn fromColumnName(String fieldToUpdate) {
+            for (EmployeeColumn column : values()) {
+                if (column.columnName.equals(fieldToUpdate)) {
+                    return column;
+                }
+            }
+
+            // If we get here, the column name was never found, i.e. it doesn't exist
+            throw new IllegalArgumentException("Invalid column name: " + fieldToUpdate);
+        }
+
+        public Object parseValue(String value) {
+            return parser.apply(value);
+        }
     }
 
     public static int updateField(
@@ -27,40 +61,25 @@ public class EditEmployees {
         // parameterized query, so direct concatenation is our only option.
         // However, not only are the column names that get passed to this
         // predetermined, we also validate them anyways; so this is safe.
-        String resolvedType = columnTypes.get(fieldToUpdate);
-        if (resolvedType == null) {
-            throw new IllegalArgumentException("Invalid column name: " + fieldToUpdate);
-        }
+        EmployeeColumn column = EmployeeColumn.fromColumnName(fieldToUpdate);
 
-        PreparedStatement ps = null;
         String sql = "UPDATE employees " +
                      "SET " + fieldToUpdate + " = ? " +
                      "WHERE empid = ? ";
         
-        try {
-            ps = conn.prepareStatement(sql);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(2, empID);
-
-            switch (resolvedType) {
-                case "string":
-                    ps.setString(1, newVal);
-                    break;
-
-                case "int":
-                    ps.setInt(1, Integer.parseInt(newVal));
-                    break;
-            }
-
-            int rowsUpdated;
-            rowsUpdated = ps.executeUpdate();
-            return rowsUpdated;
+            // Convert the given string value into an Object of the appropriate
+            // type, as determined by the internal parser. This way, setObject
+            // can determine the type we're passing. While we could rely on
+            // MySQL's type coercion, I would rather make it explicit.
+            ps.setObject(1, column.parseValue(newVal));
+            return ps.executeUpdate();
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(
                 "Invalid value '" + newVal +
-                "' for integer colum: " + fieldToUpdate
+                "' for integer column: " + fieldToUpdate
             );
-        } finally {
-            if (ps != null) ps.close();
         }
         // We don't catch the SQLExceptions explicitly since
         // they're supposed to go up the stack anyways
