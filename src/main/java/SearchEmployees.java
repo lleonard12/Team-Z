@@ -6,7 +6,7 @@ public class SearchEmployees {
         String sql = "SELECT * " +
                      "FROM employees e " +
                      "JOIN address a ON e.empid = a.empid " +
-                     "WHERE e.empid = ? " +
+                     "WHERE e.empid = ? AND has_access(e.empid)" +
                      "ORDER BY e.empid ";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -22,8 +22,8 @@ public class SearchEmployees {
         String sql = "SELECT * " +
                      "FROM employees e " +
                      "JOIN address a ON e.empid = a.empid " +
-                     "WHERE e.FName = ? AND e.Lname = ? " +
-                     "ORDER BY e.FName, e.Lname ";
+                     "WHERE e.Fname = ? AND e.Lname = ? AND has_access(e.empid)" +
+                     "ORDER BY e.Fname, e.Lname ";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, fname);
@@ -37,7 +37,7 @@ public class SearchEmployees {
         String sql = "SELECT * " +
                      "FROM employees e " +
                      "JOIN address a ON e.empid = a.empid " +
-                     "WHERE a.DOB = ? " +
+                     "WHERE a.DOB = ? AND has_access(e.empid)" +
                      "ORDER BY a.DOB ";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -51,7 +51,7 @@ public class SearchEmployees {
         String sql = "SELECT * " +
                      "FROM employees e " +
                      "JOIN address a ON e.empid = a.empid " +
-                     "WHERE e.SSN = ? " +
+                     "WHERE e.SSN = ? AND has_access(e.empid)" +
                      "ORDER BY e.SSN ";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);

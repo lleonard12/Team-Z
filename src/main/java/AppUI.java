@@ -31,32 +31,9 @@ public class AppUI {
                     help();
                     break;
 
-                // TODO: Temporary case to test permissions. Replace this with a unified search command later
-                case "search":
-                    try {
-                        inputInt = scanner.nextInt();
-                        SearchEmployees.byEmpId(connection, inputInt);
-                    } catch (SQLException e) {
-                        System.out.println("ERROR: " + e);
-                    } catch (InputMismatchException e) {
-                        System.out.println("ERROR: " + e);
-                    }
-                    break;
-
-                // TODO: Temporary case to test permissions, blah blah same thing as above
-                case "editTEMP":
-                    try {
-                        EditEmployees.updateField(connection, 1, "FName", "Snoopy");
-                    } catch (SQLException e) {
-                        System.out.println("ERROR: " + e);
-                    } catch (InputMismatchException e) {
-                        System.out.println("ERROR: " + e);
-                    }
-                    break;
-
                 default:
-                    System.out.printf("ERROR: Unrecognized command '%s'%n", inputString,
-                                      "Please enter 'help' for help.");
+                    System.out.printf("ERROR: Unrecognized command '%s'%n" +
+                                      "Please enter 'help' for help.%n", inputString);
             }
         }
 

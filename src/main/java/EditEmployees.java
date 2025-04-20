@@ -12,8 +12,8 @@ public class EditEmployees {
     // get its correct value.
     public enum EmployeeColumn {
         // TODO: The rest of the editable columns, plus some mechanism for different tables
-        FNAME("FName", "string", val -> val),
-        LNAME("LName", "string", val -> val),
+        FNAME("Fname", "string", val -> val),
+        LNAME("Lname", "string", val -> val),
         EMAIL("email", "string", val -> val),
         SALARY("salary", "int", val -> Integer.parseInt(val));
 
