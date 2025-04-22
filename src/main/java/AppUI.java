@@ -42,7 +42,11 @@ public class AppUI {
                     break;
 
                 case "salaries":
-                    salaries();
+                    try {
+                        salaries();
+                    } catch (SQLException e) {
+                        System.err.println("ERROR: " + e);
+                    }
                     break;
 
                 case "adduser":
@@ -92,8 +96,33 @@ public class AppUI {
         ;
     }
 
-    private void salaries() {
-        ;
+    private void salaries() throws SQLException {
+        // I chose to round the salary amount because, even though the salary
+        // field is of 'decimal' type, I don't want automated queries like this
+        // to pollute the salaries column with non-integer values.
+        String sql = "UPDATE employees " +
+                     "SET Salary = ROUND(Salary * (1 + ?/100)) " +
+                     "WHERE Salary BETWEEN ? AND ? ";
+        try {
+            System.out.printf("Enter percent to raise by:%n:> ");
+            double raisePercent = Double.parseDouble(scanner.nextLine());
+
+            System.out.printf("Enter lower salary bound (inclusive):%n:> ");
+            int lower = Integer.parseInt(scanner.nextLine());
+
+            System.out.printf("Enter upper salary bound (inclusive):%n:> ");
+            int upper = Integer.parseInt(scanner.nextLine());
+
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setDouble(1, raisePercent);
+            ps.setInt(2, lower);
+            ps.setInt(3, upper);
+            int rowsUpdated = ps.executeUpdate();
+
+            System.out.printf("Updated %d employees.%n", rowsUpdated);
+        } catch (NumberFormatException e) {
+            System.err.println("ERROR: Could not format input value");
+        }
     }
 
     private void addUser() {

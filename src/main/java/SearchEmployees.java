@@ -100,7 +100,6 @@ public class SearchEmployees {
         } catch (NumberFormatException e) {
             System.err.println("ERROR: " + e);
         }
-        ;
     }
 
     private static ResultSet byEmpID(Connection conn, int empID) throws SQLException {
