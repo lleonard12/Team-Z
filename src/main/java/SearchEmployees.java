@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class SearchEmployees {
@@ -10,7 +11,11 @@ public class SearchEmployees {
         "FROM employees e " +
         "JOIN address a ON e.empid = a.empid " +
         "JOIN state s ON a.state_id = s.state_id " +
-        "JOIN city c ON a.city_id = c.city_id ";
+        "JOIN city c ON a.city_id = c.city_id " +
+        "JOIN employee_job_titles ejt ON e.empid = ejt.empid " +
+        "JOIN job_titles jt ON ejt.job_title_id = jt.job_title_id " + 
+        "JOIN employee_division ed ON e.empid = ed.empid " +
+        "JOIN division d ON d.ID = ed.div_ID ";
 
     public static void search(Connection connection, Scanner scanner) {
         System.out.printf(
@@ -25,12 +30,12 @@ public class SearchEmployees {
         String target = scanner.nextLine().toLowerCase().strip();
 
         try {
-            ResultSet rs;
+            ArrayList<Employee> result = new ArrayList<Employee>();
             switch (target) {
                 case "id":
                     System.out.printf("Enter employee ID:%n:> ");
                     int empID = Integer.parseInt(scanner.nextLine().strip());
-                    rs = SearchEmployees.byEmpID(connection, empID);
+                    result = SearchEmployees.byEmpID(connection, empID);
                     break;
 
                 case "name":
@@ -38,7 +43,7 @@ public class SearchEmployees {
                     String fname = scanner.nextLine().strip();
                     System.out.printf("Enter last name:%n:> ");
                     String lname = scanner.nextLine().strip();
-                    rs = SearchEmployees.byName(connection, fname, lname);
+                    result = SearchEmployees.byName(connection, fname, lname);
                     break;
 
                 case "dob":
@@ -48,7 +53,7 @@ public class SearchEmployees {
                     String month = scanner.nextLine();
                     System.out.printf("Enter year (as a number):%n:> ");
                     String year = scanner.nextLine();
-                    rs = SearchEmployees.byDOB(connection, day, month, year);
+                    result = SearchEmployees.byDOB(connection, day, month, year);
                     break;
 
                 case "ssn":
@@ -65,7 +70,7 @@ public class SearchEmployees {
                           ssn.substring(3,5) + "-" + 
                           ssn.substring(5);
                     System.out.println(ssn);
-                    rs = SearchEmployees.bySSN(connection, ssn);
+                    result = SearchEmployees.bySSN(connection, ssn);
                     break;
 
                 default:
@@ -74,7 +79,7 @@ public class SearchEmployees {
             }
 
             int matchNum = 0;
-            while (rs.next()) {
+            for (Employee e : result) {
                 matchNum++;
                 System.out.printf(
                     "%n----------------------------------------------%n" +
@@ -85,10 +90,10 @@ public class SearchEmployees {
                     "Home address: %s, %s, %s %s%n" + // Street, city, state, zip
                     "----------------------------------------------%n",
                     matchNum,
-                    rs.getString("Fname"), rs.getString("Lname"), rs.getInt("empid"),
-                    rs.getDate("DOB"),
-                    rs.getString("SSN"),
-                    rs.getString("street"), rs.getString("city_name"), rs.getString("state_code"), rs.getString("zip")
+                    e.getFname(), e.getLname(), e.getID(),
+                    e.getDob(),
+                    e.getSsn(),
+                    e.getStreet(), e.getCityName(), e.getStateCode(), e.getZip()
                 );
             }
 
@@ -96,44 +101,54 @@ public class SearchEmployees {
                 System.out.println("No matches found.");
             }
         } catch (SQLException e) {
-            System.err.println("ERROR: " + e);
+            System.err.println("ERROR: " + e.getMessage());
         } catch (NumberFormatException e) {
-            System.err.println("ERROR: " + e);
+            System.err.println("ERROR: " + e.getMessage());
         }
     }
 
-    private static ResultSet byEmpID(Connection conn, int empID) throws SQLException {
+    private static ArrayList<Employee> byEmpID(Connection conn, int empID) throws SQLException {
         String sql = baseQuery +
-                     "WHERE e.empid = ? AND has_access(e.empid)" +
+                     "WHERE e.empid = ? AND has_access(e.empid) " +
                      "ORDER BY e.empid ";
-        try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, empID);
-            ResultSet res = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
+
+            ArrayList<Employee> res = new ArrayList<Employee>();
+            while (rs.next()) {
+                res.add(new Employee(rs));
+            }
+
             return res;
         }  finally {}
     }
 
-    private static ResultSet byName(Connection conn, String fname, String lname)
+    private static ArrayList<Employee> byName(Connection conn, String fname, String lname)
     throws SQLException {
         String sql = baseQuery +
                      "WHERE e.Fname LIKE ?" +
                      "AND e.Lname LIKE ?" +
-                     "AND has_access(e.empid)" +
+                     "AND has_access(e.empid) " +
                      "ORDER BY e.Fname, e.Lname ";
-        try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             // Setup fuzzy query
             fname = "%" + fname + "%";
             lname = "%" + lname + "%";
             ps.setString(1, fname);
             ps.setString(2, lname);
-            ResultSet res = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
+
+            ArrayList<Employee> res = new ArrayList<Employee>();
+            while (rs.next()) {
+                res.add(new Employee(rs));
+            }
+
             return res;
         }  finally {}
     }
 
-    private static ResultSet byDOB(
+    private static ArrayList<Employee> byDOB(
         Connection conn,
         String day,
         String month,
@@ -163,8 +178,7 @@ public class SearchEmployees {
         sql.append("ORDER BY a.DOB ");
 
         int i = 1;
-        try {
-            PreparedStatement ps = conn.prepareStatement(sql.toString());
+        try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             if (has_day) {
                 ps.setInt(i++, Integer.parseInt(day));
             }
@@ -177,20 +191,31 @@ public class SearchEmployees {
                 ps.setInt(i++, Integer.parseInt(year));
             }
 
-            ResultSet res = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
+
+            ArrayList<Employee> res = new ArrayList<Employee>();
+            while (rs.next()) {
+                res.add(new Employee(rs));
+            }
+
             return res;
         } finally {}
         // SQLExceptions and NumberFormatExceptions are passed to the caller
     }
 
-    private static ResultSet bySSN(Connection conn, String SSN) throws SQLException {
+    private static ArrayList<Employee> bySSN(Connection conn, String SSN) throws SQLException {
         String sql = baseQuery +
-                     "WHERE e.SSN = ? AND has_access(e.empid)" +
+                     "WHERE e.SSN = ? AND has_access(e.empid) " +
                      "ORDER BY e.SSN ";
-        try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, SSN);
-            ResultSet res = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
+
+            ArrayList<Employee> res = new ArrayList<Employee>();
+            while (rs.next()) {
+                res.add(new Employee(rs));
+            }
+
             return res;
         }  finally {}
     }
