@@ -150,6 +150,39 @@ public class AppUI {
     }
 
     private void deleteUser() {
-        ;
+        try {
+            System.out.print("Enter the username to delete: ");
+            String username = scanner.nextLine().strip();
+
+            String sqlDropUser = "DROP USER ?@localhost";
+
+            try (PreparedStatement ps = connection.prepareStatement(sqlDropUser)) {
+                ps.setString(1, username);
+                ps.executeUpdate();
+            }
+
+            System.out.println("User account '" + username + "' has been deleted.");
+
+            System.out.print("Do you want to delete their employee record as well? (yes/no): ");
+            String choice = scanner.nextLine().strip().toLowerCase();
+
+            if (choice.equals("yes")) {
+                System.out.print("Enter the employee ID to delete: ");
+                int empID = Integer.parseInt(scanner.nextLine().strip());
+
+                String sqlDeleteEmployee = "DELETE FROM employees WHERE empid = ?";
+
+                try (PreparedStatement ps = connection.prepareStatement(sqlDeleteEmployee)) {
+                    ps.setInt(1, empID);
+                    int rowsDeleted = ps.executeUpdate();
+                    System.out.println(rowsDeleted + " employee record(s) deleted.");
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("SQL ERROR: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid input! Employee ID must be a number. ");
+        }
     }
 }
