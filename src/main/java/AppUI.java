@@ -91,6 +91,7 @@ public class AppUI {
     private void report() {
         System.out.println("Select a report to generate: ");
         System.out.println("1 - Pay statement history");
+        System.out.println("2- Total pay for month by job title");
         System.out.println("3 - Total pay for month by division");
         System.out.print(":>");
 
