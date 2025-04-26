@@ -89,7 +89,26 @@ public class AppUI {
     }
 
     private void report() {
-        ;
+        System.out.println("Select a report to generate: ");
+        System.out.println("1 - Pay statement history");
+        System.out.println("3 - Total pay for month by division");
+        System.out.print(":>");
+
+        Sttring choice = scanner.nextLine().strip();
+
+        switch (choice) {
+            case "1":
+                Reports.reportPayStatementHistory(connection, scanner);
+                break;
+            case "2":
+                Reports.reportByJobTitle(connection, scanner);
+                break;
+            case "3":
+                Reports.reportByDivision(connection, scanner);
+                break;
+            default:
+                System.out.println("Invalid report selection.");
+                break;
     }
 
     private void edit() {
