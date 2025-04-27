@@ -131,7 +131,31 @@ public class AppUI {
     }
 
     private void edit() {
-        ;
+        try {
+            System.out.println("Enter the employee ID you want to edit: ");
+            int empID = Integer.parseInt(scanner.nextLine().strip());
+
+            System.out.println("Available fields to edit: First name, Last name, email, salary");
+            System.out.print("Enter the field name you want to edit: ");
+            String fieldToUpdate = scanner.nextLine().strip();
+
+            System.out.print("Enter the new value for " + fieldToUpdate + ": ");
+            String newValue = scanner.nextLine().strip();
+
+            int rowsUpdated = EditEmployees.updateField(connection, empID, fieldToUpdate, newValue);
+
+            if (rowsUpdated > 0) {
+                System.out.println("Update successful!");
+            } else {
+                System.out.println("No employee record was updated. Check your employee ID and field name.");
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL ERROR: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("ERROR: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid input! Employee ID must be a number.");
+        }
     }
 
     private void salaryUpdate() throws SQLException {
