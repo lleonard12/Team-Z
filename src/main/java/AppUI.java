@@ -1,5 +1,7 @@
 import java.sql.*;
+import java.time.DateTimeException;
 import java.util.Scanner;
+import AddEmployee.AddEmployee;
 
 public class AppUI {
     Connection connection;
@@ -43,18 +45,33 @@ public class AppUI {
 
                 case "salaries":
                     try {
-                        salaries();
+                        salaryUpdate();
                     } catch (SQLException e) {
-                        System.err.println("ERROR: " + e);
+                        System.err.println("ERROR: " + e.getMessage());
                     }
                     break;
 
                 case "adduser":
-                    addUser();
+                    // I could do a generic Exception catch, but I'd rather have
+                    // the structure to catch different exceptions even if it isn't
+                    // currently used
+                    try {
+                        AddEmployee.addEmployee(connection, scanner);
+                    } catch (SQLException e) {
+                        System.err.println("ERROR: " + e.getMessage());
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("ERROR: " + e.getMessage());
+                    } catch (DateTimeException e) {
+                        System.err.println("ERROR: " + e.getMessage());
+                    }
                     break;
 
                 case "deleteuser":
                     deleteUser();
+                    break;
+
+                case "payroll":
+                    payroll();
                     break;
 
                 default:
@@ -66,7 +83,7 @@ public class AppUI {
         scanner.close();
     }
 
-    void help() {
+    private void help() {
         System.out.printf(
             "-------------------------------------------------------------------------------%n" +
             "Employee management system by Team-Z.%n%n" +
@@ -84,6 +101,7 @@ public class AppUI {
             "salaries - Update employee salaries in range by %%.%n" +
             "adduser - Create a new user.%n" +
             "deleteuser - Remove a user from the database.%n" +
+            "payroll - Add a new payroll.%n" +
             "-------------------------------------------------------------------------------%n"
         );
     }
@@ -116,7 +134,7 @@ public class AppUI {
         ;
     }
 
-    private void salaries() throws SQLException {
+    private void salaryUpdate() throws SQLException {
         // I chose to round the salary amount because, even though the salary
         // field is of 'decimal' type, I don't want automated queries like this
         // to pollute the salaries column with non-integer values.
@@ -143,10 +161,6 @@ public class AppUI {
         } catch (NumberFormatException e) {
             System.err.println("ERROR: Could not format input value");
         }
-    }
-
-    private void addUser() {
-        ;
     }
 
     private void deleteUser() {
@@ -184,5 +198,9 @@ public class AppUI {
         } catch (NumberFormatException e) {
             System.err.println("Invalid input! Employee ID must be a number. ");
         }
+    }
+
+    private void payroll() {
+        ;
     }
 }
