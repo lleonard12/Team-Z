@@ -113,7 +113,7 @@ public class AppUI {
         System.out.println("3 - Total pay for month by division");
         System.out.print(":>");
 
-        Sttring choice = scanner.nextLine().strip();
+        String choice = scanner.nextLine().strip();
 
         switch (choice) {
             case "1":
@@ -128,6 +128,7 @@ public class AppUI {
             default:
                 System.out.println("Invalid report selection.");
                 break;
+        }
     }
 
     private void edit() {
