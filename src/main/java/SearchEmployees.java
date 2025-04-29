@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class SearchEmployees {
@@ -78,28 +79,26 @@ public class SearchEmployees {
                     return;
             }
 
-            int matchNum = 0;
-            for (Employee e : result) {
-                matchNum++;
-                System.out.printf(
-                    "%n----------------------------------------------%n" +
-                    "MATCH #%d:%n" +
-                    "%s %s, employee ID #%09d%n" +
-                    "Date of birth: %tD%n" +
-                    "SSN: %s%n" +
-                    "Home address: %s, %s, %s %s%n" + // Street, city, state, zip
-                    "----------------------------------------------%n",
-                    matchNum,
-                    e.getFname(), e.getLname(), e.getID(),
-                    e.getDob(),
-                    e.getSsn(),
-                    e.getStreet(), e.getCityName(), e.getStateCode(), e.getZip()
-                );
+            int len = result.size();
+            System.out.printf("%d matches found.%n", len);
+            if (len == 0) {
+                return;
             }
 
-            if (matchNum == 0) {
-                System.out.println("No matches found.");
+            System.out.println("Enter an ID to view more info, or nothing to go back:");
+            HashMap<String, Employee> hm = prepareMap(result);
+            for (Employee e : result) {
+                System.out.printf("%d: %s %s%n", e.getID(), e.getFname(), e.getLname());
             }
+
+            System.out.print(":> ");
+            String selected = scanner.nextLine();
+            Employee e = hm.get(selected);
+            if (e == null) {
+                return;
+            }
+
+            printEmployee(e);
         } catch (SQLException e) {
             System.err.println("ERROR: " + e.getMessage());
         } catch (NumberFormatException e) {
@@ -107,7 +106,47 @@ public class SearchEmployees {
         }
     }
 
-    private static ArrayList<Employee> byEmpID(Connection conn, int empID) throws SQLException {
+    private static void printEmployee(Employee e) {
+        System.out.printf(
+            "%n--------------------------------------------------------%n" +
+            "%s %s, employee ID #%09d%n" +
+            "Salary: $%,d%n" +
+            "Hired on: %tD%n" +
+            "Date of birth: %tD%n" +
+            "Phone number: %s%n" +
+            "Email address: %s%n" +
+            "SSN: %s%n" +
+            "Home address: %s, %s, %s %s%n" + // Street, city, state, zip
+            "Division: %s%n" +
+            "Job title: %s%n" +
+            "--------------------------------------------------------%n",
+            e.getFname(), e.getLname(), e.getID(),
+            e.getSalary(),
+            e.getHireDate(),
+            e.getDob(),
+            e.getPhoneNumber(),
+            e.getEmail(),
+            e.getSsn(),
+            e.getStreet(), e.getCityName(), e.getStateCode(), e.getZip(),
+            e.getDivisionName(),
+            e.getJobTitle()
+        );
+    }
+
+    // We convert the empID to a string instead of using the raw int to more
+    // easily compare it to the user's input
+    private static HashMap<String, Employee> prepareMap(ArrayList<Employee> employeeList) {
+        HashMap<String, Employee> hm = new HashMap<String, Employee>();
+
+        for (Employee e : employeeList) {
+            hm.put(String.valueOf(e.getID()), e);
+        }
+
+        return hm;
+    }
+
+    private static ArrayList<Employee> byEmpID(Connection conn, int empID)
+    throws SQLException {
         String sql = baseQuery +
                      "WHERE e.empid = ? AND has_access(e.empid) " +
                      "ORDER BY e.empid ";
@@ -130,7 +169,7 @@ public class SearchEmployees {
                      "WHERE e.Fname LIKE ?" +
                      "AND e.Lname LIKE ?" +
                      "AND has_access(e.empid) " +
-                     "ORDER BY e.Fname, e.Lname ";
+                     "ORDER BY e.empid ";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             // Setup fuzzy query
             fname = "%" + fname + "%";
@@ -175,7 +214,7 @@ public class SearchEmployees {
             sql.append("AND YEAR(a.DOB) = ? ");
         }
 
-        sql.append("ORDER BY a.DOB ");
+        sql.append("ORDER BY e.empid ");
 
         int i = 1;
         try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
@@ -206,7 +245,7 @@ public class SearchEmployees {
     private static ArrayList<Employee> bySSN(Connection conn, String SSN) throws SQLException {
         String sql = baseQuery +
                      "WHERE e.SSN = ? AND has_access(e.empid) " +
-                     "ORDER BY e.SSN ";
+                     "ORDER BY e.empid ";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, SSN);
             ResultSet rs = ps.executeQuery();
