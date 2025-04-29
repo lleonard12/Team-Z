@@ -154,8 +154,6 @@ public class AppUI {
             System.err.println("SQL ERROR: " + e.getMessage());
         } catch (IllegalArgumentException e) {
             System.err.println("ERROR: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            System.err.println("Invalid input! Employee ID must be a number.");
         }
     }
 
