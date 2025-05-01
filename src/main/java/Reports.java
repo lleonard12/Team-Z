@@ -34,13 +34,13 @@ public class Reports {
 
     public static void reportByJobTitle(Connection conn, Scanner scanner) {
         try {
-            String sql = "SELECT jt.title_name, SUM(p.earnings) AS total_earnings " +
+            String sql = "SELECT jt.job_title, SUM(p.earnings) AS total_earnings " +
                          "FROM payroll p " +
                          "JOIN employees e ON p.empid = e.empid " +
                          "JOIN employee_job_titles ejt ON e.empid = ejt.empid " +
                          "JOIN job_titles jt ON ejt.job_title_id = jt.job_title_id " +
-                         "GROUP BY jt.title_name " +
-                         "ORDER BY jt.title_name ASC";
+                         "GROUP BY jt.job_title " +
+                         "ORDER BY jt.job_title ASC";
 
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -48,7 +48,7 @@ public class Reports {
             System.out.println("Total Pay by Job Title: ");
             while (rs.next()) {
                 System.out.printf("Job Title: %s | Total Earnings: %.2f%n",
-                rs.getString("title_name"),
+                rs.getString("job_title"),
                 rs.getDouble("total_earnings"));
             }
             rs.close();
@@ -60,13 +60,13 @@ public class Reports {
 
     public static void reportByDivision(Connection conn, Scanner scanner) {
         try {
-            String sql = "SELECT d.division_name, SUM(p.earnings) AS total_earnings " +
+            String sql = "SELECT d.Name, SUM(p.earnings) AS total_earnings " +
                          "FROM payroll p " +
                          "JOIN employees e ON p.empid = e.empid " +
                          "JOIN employee_division ed ON e.empid = ed.empid " +
-                         "JOIN division d ON ed.div_id = d.div_id " +
-                         "GROUP BY d.division_name " +
-                         "ORDER BY d.division_name ASC";
+                         "JOIN division d ON ed.div_ID = d.ID " +
+                         "GROUP BY d.Name " +
+                         "ORDER BY d.Name ASC";
     
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -74,7 +74,7 @@ public class Reports {
             System.out.println("Total Pay by Division:");
             while (rs.next()) {
                 System.out.printf("Division: %s | Total Earnings: %.2f%n",
-                    rs.getString("division_name"),
+                    rs.getString("Name"),
                     rs.getDouble("total_earnings"));
             }
             rs.close();

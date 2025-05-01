@@ -2,6 +2,7 @@ import java.sql.*;
 import java.time.DateTimeException;
 import java.util.Scanner;
 import AddEmployee.AddEmployee;
+// import EditEmployees.Tables;
 
 public class AppUI {
     Connection connection;
@@ -70,10 +71,6 @@ public class AppUI {
                     deleteUser();
                     break;
 
-                case "payroll":
-                    payroll();
-                    break;
-
                 default:
                     System.err.printf("ERROR: Unrecognized command '%s'%n" +
                                       "Please enter 'help' for help.%n", inputString);
@@ -101,7 +98,6 @@ public class AppUI {
             "salaries - Update employee salaries in range by %%.%n" +
             "adduser - Create a new user.%n" +
             "deleteuser - Remove a user from the database.%n" +
-            "payroll - Add a new payroll.%n" +
             "-------------------------------------------------------------------------------%n"
         );
     }
@@ -133,10 +129,10 @@ public class AppUI {
 
     private void edit() {
         try {
-            System.out.println("Enter the employee ID you want to edit: ");
+            System.out.print("Enter the employee ID you want to edit: ");
             int empID = Integer.parseInt(scanner.nextLine().strip());
 
-            System.out.println("Available fields to edit: First name, Last name, email, salary");
+            System.out.println("Available fields to edit: Fname, Lname, email, salary");
             System.out.print("Enter the field name you want to edit: ");
             String fieldToUpdate = scanner.nextLine().strip();
 
@@ -221,9 +217,5 @@ public class AppUI {
         } catch (NumberFormatException e) {
             System.err.println("Invalid input! Employee ID must be a number. ");
         }
-    }
-
-    private void payroll() {
-        ;
     }
 }
