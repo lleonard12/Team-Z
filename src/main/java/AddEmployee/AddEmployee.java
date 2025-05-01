@@ -61,8 +61,6 @@ public class AddEmployee {
         System.out.printf("Phone number:%n:> ");
         String phoneNumber = scanner.nextLine();
 
-        // TODO?: For city, state, job title, and division ID, there's possible
-        // room for improvement over having to blindly insert the number
         System.out.printf("City ID:%n:> ");
         int cityID;
         String cityIDString = scanner.nextLine();

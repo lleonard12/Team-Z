@@ -15,7 +15,7 @@ public class Main {
             AppUI app = new AppUI(connection);
             app.start();
         } catch (Exception e) {
-            System.err.println("ERROR: " + e.getLocalizedMessage());
+            System.err.println("ERROR: No suitable login found");
         } finally {}
     }
 

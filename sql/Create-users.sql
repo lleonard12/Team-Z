@@ -1,3 +1,6 @@
+CREATE ROLE 'admin_role';
+CREATE ROLE 'employee_role';
+
 GRANT ALL PRIVILEGES ON *.* TO 'admin_role';
 GRANT SELECT ON employeeData.* TO 'employee_role';
 GRANT EXECUTE ON FUNCTION has_access TO 'employee_role';

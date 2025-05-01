@@ -131,15 +131,23 @@ public class AppUI {
         try {
             System.out.print("Enter the employee ID you want to edit: ");
             int empID = Integer.parseInt(scanner.nextLine().strip());
+            System.out.printf(
+                "Available tables and fields to edit:%n" +
+                "employees - Fname, Lname, email, Salary, SSN%n" +
+                "address - street, zip, gender, identified_race, phone_number, city_id, state_id%n" +
+                ":> "
+            );
 
-            System.out.println("Available fields to edit: Fname, Lname, email, salary");
+            String tableToUpdate = scanner.nextLine().strip().toLowerCase();
+
+            // System.out.println("Available fields to edit: Fname, Lname, email, salary");
             System.out.print("Enter the field name you want to edit: ");
             String fieldToUpdate = scanner.nextLine().strip();
 
             System.out.print("Enter the new value for " + fieldToUpdate + ": ");
             String newValue = scanner.nextLine().strip();
 
-            int rowsUpdated = EditEmployees.updateField(connection, empID, fieldToUpdate, newValue);
+            int rowsUpdated = EditEmployees.updateField(connection, empID, tableToUpdate, fieldToUpdate, newValue);
 
             if (rowsUpdated > 0) {
                 System.out.println("Update successful!");
@@ -148,6 +156,8 @@ public class AppUI {
             }
         } catch (SQLException e) {
             System.err.println("SQL ERROR: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.err.println("ERROR: Could not parse input as an ID; should be numeric");
         } catch (IllegalArgumentException e) {
             System.err.println("ERROR: " + e.getMessage());
         }
@@ -184,7 +194,7 @@ public class AppUI {
 
     private void deleteUser() {
         try {
-            System.out.print("Enter the username to delete: ");
+            System.out.print("Enter the ID of the employee to delete: ");
             String username = scanner.nextLine().strip();
 
             String sqlDropUser = "DROP USER ?@localhost";
@@ -200,8 +210,7 @@ public class AppUI {
             String choice = scanner.nextLine().strip().toLowerCase();
 
             if (choice.equals("yes")) {
-                System.out.print("Enter the employee ID to delete: ");
-                int empID = Integer.parseInt(scanner.nextLine().strip());
+                int empID = Integer.parseInt(username);
 
                 String sqlDeleteEmployee = "DELETE FROM employees WHERE empid = ?";
 
